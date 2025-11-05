@@ -1,0 +1,1 @@
+print('VidReacher Labs backend placeholder loaded.')

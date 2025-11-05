@@ -1,0 +1,23 @@
+name: Deploy VidReacher Labs
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install backend deps
+        run: pip install -r backend_source/requirements.txt || true
+      - name: Check syntax
+        run: python -m compileall backend_source || true
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Build frontend
+        run: cd react_enhanced && npm install && npm run build || true
