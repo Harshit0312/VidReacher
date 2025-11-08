@@ -1,11 +1,11 @@
 # backend_source/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import ai_tools
 
-# Create FastAPI instance
-app = FastAPI(title="VidReacher Labs API", version="1.0")
+app = FastAPI(title="VidReacher Labs API")
 
-# Allow all origins for testing
+# Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,10 +14,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# include routes
+app.include_router(ai_tools.router)
+
 @app.get("/")
 def root():
     return {"message": "VidReacher Labs backend is running successfully 🚀"}
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
