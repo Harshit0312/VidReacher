@@ -28,10 +28,8 @@ def meta_start():
         "redirect_uri": redirect_uri,
         "scope": ",".join([
             "pages_show_list",
-            "pages_read_engagement",
             "pages_read_user_content",
             "instagram_basic",
-            "instagram_manage_insights"
         ]),
         "response_type": "code",
     }
