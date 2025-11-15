@@ -2,6 +2,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from app.db.models import SessionLocal, ScheduledPost
+from app.services.analytics_fetchers import fetch_all_analytics
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -32,3 +33,10 @@ def start_scheduler():
     scheduler.add_job(process_scheduled_posts, "interval", seconds=60, id="post_checker")
     scheduler.start()
     logger.info("✅ Background Scheduler started (checks every 60 seconds)")
+    try:
+        scheduler.add_job(fetch_all_analytics, 'cron', hour=2, minute=0, id='daily_analytics')
+        logger.info("✅ Daily analytics job scheduled at 02:00 UTC")
+    except Exception:
+        # job may already exist if reloading; that's okay
+        logger.info("Daily analytics job registration skipped (maybe already exists)")
+    

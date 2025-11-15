@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.background_jobs import start_scheduler
-from app.routes import ai_tools, scheduler
+from app.routes import ai_tools, scheduler, oauth, analytics
 
 # ✅ create FastAPI instance before adding routers
 app = FastAPI(title="VidReacher Labs API")
@@ -20,6 +20,8 @@ app.add_middleware(
 # ✅ include routers after app is defined
 app.include_router(ai_tools.router)
 app.include_router(scheduler.router)
+app.include_router(oauth.router)
+app.include_router(analytics.router)
 
 # ✅ base route to verify backend is live
 @app.get("/")
