@@ -242,3 +242,68 @@ def google_callback(code: str | None = None, error: str | None = None):
         db.close()
 
     return RedirectResponse(f"{FRONTEND_BASE}/?connected=google&id={saved_id}")
+
+#------------LIST ACCOUNT ------------------------#
+@router.get("/accounts")
+def list_accounts():
+    db = SessionLocal()
+    try:
+        accounts = db.query(SocialAccount).all()
+        return {"accounts": [a.to_dict() for a in accounts]}
+    finally:
+        db.close()
+
+#-----------DISCONNECT ACCOUNT--------------#
+@router.delete("/disconnect/{account_id}")
+def disconnect(account_id: int):
+    db = SessionLocal()
+    try:
+        acc = db.query(SocialAccount).filter(SocialAccount.id == account_id).first()
+        if not acc:
+            return {"error": "Account not found"}
+        db.delete(acc)
+        db.commit()
+        return {"success": True}
+    finally:
+        db.close()
+
+#-----------------Refresh Google / YouTube token -----------#
+@router.get("/refresh/{account_id}")
+def refresh_youtube_token(account_id: int):
+    db = SessionLocal()
+    acc = db.query(SocialAccount).filter(SocialAccount.id == account_id).first()
+    if not acc:
+        return {"error": "Account not found"}
+
+    if acc.platform != "youtube":
+        return {"error": "Only YouTube accounts can refresh token"}
+
+    refresh_token = acc.refresh_token
+    if not refresh_token:
+        return {"error": "No refresh token available"}
+
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "refresh_token": refresh_token,
+        "grant_type": "refresh_token"
+    }
+
+    r = requests.post(token_url, data=data)
+    tok = r.json()
+
+    new_access = tok.get("access_token")
+    expires = tok.get("expires_in")
+
+    if not new_access:
+        return {"error": "Failed to refresh token", "details": tok}
+
+    acc.access_token = new_access
+    if expires:
+        acc.token_expires_at = datetime.utcnow() + timedelta(seconds=expires)
+
+    db.commit()
+    db.close()
+
+    return {"success": True}
